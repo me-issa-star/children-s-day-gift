@@ -367,6 +367,14 @@ textarea.t{min-height:96px;resize:vertical;line-height:1.7}
 /* modals */
 .modal{position:fixed;inset:0;z-index:35;display:grid;place-items:center;padding:20px;background:rgba(20,50,35,.45);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .35s;overflow-y:auto}
 .modal.show{opacity:1;pointer-events:auto}
+.pad-letter{padding-top:28px}
+.pad-top{font-size:52px;line-height:1}
+.pad-en{direction:ltr;font-family:'Nunito',sans-serif;color:var(--soft);font-weight:700;margin-top:2px}
+.pad-prev{background:#fff;border:2px dashed #dcefe0;border-radius:18px;padding:14px;margin:14px 0;white-space:pre-line;line-height:1.7;font-weight:600}
+.pad-prev img{max-width:100%;border-radius:12px;display:block;margin:0 auto 8px;-webkit-touch-callout:default}
+.pad-steps{text-align:start;margin:0 0 14px;padding-inline-start:22px;line-height:1.7;font-size:15px}
+.pad-steps li{margin-bottom:6px}.pad-steps small{display:block;direction:ltr;text-align:left;color:var(--soft);font-family:'Nunito',sans-serif}
+.pad-go{display:flex;justify-content:center;width:100%;max-width:none;font-size:19px;padding:14px;text-decoration:none}
 .letter{position:relative;width:min(92vw,430px);background:#fffdf8;border-radius:30px;padding:84px 24px 24px;text-align:center;box-shadow:0 30px 70px -20px rgba(0,0,0,.45);
   transform:translateY(30px) scale(.92);transition:transform .5s cubic-bezier(.2,1.3,.4,1);margin-top:60px;
   background-image:repeating-linear-gradient(transparent 0 37px,#fff1dc 37px 38px)}
@@ -521,16 +529,16 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
         <div class="fmsgs" id="fMsgs"></div>
         <button class="btn" id="fDrawBtn" style="margin-top:12px;width:100%">🎨 أو ارسم له رسمة</button>
         <div id="fDrawBox" style="display:none;margin-top:10px"><div class="pad-wrap"><canvas id="pad3" class="padc"></canvas></div><div class="pad-tools" id="pad3Tools"></div><div class="stamps" id="stamps3"></div>
-          <button class="btn violet" id="fDrawDone" style="margin-top:10px;width:100%">✓ خلصت الرسمة</button></div>
+          <button class="btn violet" id="fDrawDone" style="margin-top:10px;width:100%">✓ انتهيت من الرسمة · Done</button></div>
       </div>
       <div class="fstep" id="fs3" style="display:none"><div class="fq">🙋 مَن أنت؟ · Who are you?</div><div class="kgrid" id="fFroms"></div></div>
       <div class="fstep" id="fs4" style="display:none">
         <div class="fenv" id="fPreview"></div>
-        <button class="btn primary send" id="fSend">🚀 أرسل الرسالة</button>
+        <button class="btn primary send" id="fSend">📌 انشر على Padlet · Post on Padlet</button>
       </div>
       <button class="fback" id="fBack" style="display:none">→ رجوع</button>
     </div>
-    <details class="parents"><summary>👨‍👩‍👧 لأولياء الأمور: اكتبوا أمنية لأطفالنا</summary>
+    <details class="parents"><summary>👨‍👩‍👧 لأولياء الأمور: اكتبوا أمنية لأطفالنا · Parents: write a wish for our children</summary>
     <form class="form" id="partForm" autocomplete="off">
       <span class="lbl" style="display:none">مين يشارك؟</span>
       <div class="chips" id="whoChips" style="display:none"><button type="button" class="chip on" data-v="child">🧒 طفل</button><button type="button" class="chip" data-v="parent">👨‍👩‍👧 ولي أمر</button></div>
@@ -542,7 +550,7 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
         <span class="lbl">🖍️ ارسم هنا</span>
         <div class="pad-wrap"><canvas id="pad"></canvas></div>
         <div class="pad-tools" id="padTools"></div>
-        <span class="lbl">وش رسمت؟ (اختياري)</span>
+        <span class="lbl">ماذا رسمت؟ (اختياري)</span>
         <input class="t" id="pDrawText" maxlength="80" placeholder="اكتب كلمة عن رسمتك">
       </div>
       <div id="textBox">
@@ -551,19 +559,17 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
       </div>
       <span class="lbl">😊 اختر وجهك</span>
       <div class="faces" id="faceRow"></div>
-      <button type="submit" class="btn primary send">🚀 أرسل أمنيتي</button>
-      <div class="small-note" style="text-align:center;margin-top:8px">🏅 كل مشارك يحصل على شهادة مشاركة باسمه</div>
+      <button type="submit" class="btn primary send">📌 انشر أمنيتي على Padlet · Post on Padlet</button>
+      <div class="small-note" style="text-align:center;margin-top:8px">ستظهر أمنيتك على جدار الفصل في Padlet ليراها الجميع<br><span dir="ltr">Your wish will appear on our class Padlet wall for everyone to see</span></div>
     </form>
     </details>
   </div>
 
   <div class="sec" id="gallerySec">
-    <h2 class="sec-h display rainbow">💞 لوحة الصداقة</h2>
-    <div class="sec-sub" id="galCount"></div>
-    <div class="fboard" id="fBoard"><svg id="fLines"></svg></div>
-    <div class="flist" id="fList"></div>
-    <div id="galDraw"></div>
-    <div class="wall" id="galWall"></div>
+    <h2 class="sec-h display rainbow">💞 جدار الفصل</h2>
+    <div class="sec-sub">شاهدوا رسائل الأصدقاء وأمنيات الأهل<br><span dir="ltr" style="font-family:'Nunito',sans-serif">See everyone's messages and wishes</span></div>
+    <a class="btn primary pad-go" id="wallGo" href="#" target="_blank" rel="noopener" style="max-width:420px;margin:14px auto 0">📌 افتح جدار الفصل · Open our class wall</a>
+    <div id="fBoard" hidden><svg id="fLines"></svg></div><div id="fList" hidden></div><div id="galDraw" hidden></div><div id="galWall" hidden></div><span id="galCount" hidden></span>
   </div>
 
   <div class="sec">
@@ -696,6 +702,19 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
 </div>
 
 <!-- STAR MODAL -->
+<div class="modal" id="padModal">
+  <div class="letter pad-letter">
+    <button class="iconbtn close" id="padClose" aria-label="إغلاق">✕</button>
+    <div class="pad-top">📌</div>
+    <div class="ttl rainbow">انشر على جدار الفصل</div>
+    <div class="pad-en">Post on our class wall</div>
+    <div class="pad-prev" id="padPrev"></div>
+    <ol class="pad-steps" id="padSteps"></ol>
+    <a class="btn primary pad-go" id="padGo" href="#" target="_blank" rel="noopener">📌 افتح Padlet · Open Padlet</a>
+    <button class="btn" id="padCopy" style="margin-top:8px">📋 انسخ الرسالة مرة أخرى · Copy again</button>
+  </div>
+</div>
+
 <div class="modal" id="starModal">
   <div class="letter">
     <button class="iconbtn close" id="starClose" aria-label="إغلاق">✕</button>
@@ -1018,15 +1037,11 @@ function makePad(cv,toolsEl,stampsEl){
 }
 const pad1=makePad($('pad'),$('padTools'));
 const TYPE_L={msg:'رسالة',wish:'أمنية',draw:'رسمة',friend:'رسالة لصديق'},WHO_L={child:'طفل',parent:'ولي أمر'};
-$('partForm').onsubmit=async e=>{e.preventDefault();
+$('partForm').onsubmit=e=>{e.preventDefault();
   const name=$('pName').value.trim();if(!name){toast('✏️ اكتب اسمك أولاً');$('pName').focus();return;}
-  let p={id:Date.now(),who,type:ptype,name,face:pface};
-  if(ptype==='draw'){if(!pad1.drawn){toast('🖍️ ارسم شيئًا أولاً');return;}p.img=pad1.image();p.text=$('pDrawText').value.trim();}
-  else{p.text=$('pText').value.trim();if(!p.text){toast('💬 اكتب رسالتك أولاً');$('pText').focus();return;}}
-  parts.unshift(p);if(!saveParts()){parts.shift();return;}
-  confetti(180);chime();toast('💖 وصلت مشاركتك! شكرًا لك');renderGallery();
-  $('pName').value='';$('pText').value='';$('pDrawText').value='';if(pad1.drawn)pad1.clear();
-  await showCert(p);
+  if(ptype==='draw'){if(!pad1.drawn){toast('🖍️ ارسم شيئًا أولاً');return;}const t=$('pDrawText').value.trim();openPadlet(`🎨 ${pface} ${name}`+(t?'\n'+t:''),pad1.image(),'drawing-KG1C.png');pad1.clear();}
+  else{const t=$('pText').value.trim();if(!t){toast('💬 اكتب أمنيتك أولاً');$('pText').focus();return;}openPadlet(`⭐ ${pface} أمنية من ${name}\nA wish from ${name}\n\n${t}`);}
+  $('pName').value='';$('pText').value='';$('pDrawText').value='';
 };
 function renderGallery(){
   $('galCount').textContent=parts.length?`${parts.length} مشاركة 💖`:'';
@@ -1064,19 +1079,27 @@ function fGo(n){fStep=n;[1,2,3,4].forEach(j=>$('fs'+j).style.display=j===n?'':'n
 $('fBack').onclick=()=>{if(fStep===4)fGo(3);else if(fStep===3)fGo(2);else fGo(1);};
 $('fDrawBtn').onclick=()=>{$('fDrawBox').style.display='';setTimeout(pad3.size_,30);};
 $('fDrawDone').onclick=()=>{if(!pad3.drawn){toast('🖍️ ارسم شيئًا أولاً');return;}fImg=pad3.image();fMsg=null;fGo(3);};
-$('fSend').onclick=async()=>{
-  const p={id:Date.now(),type:'friend',who:'child',from:fFrom,to:fTo,m:fMsg,img:fImg,name:data.kids[fFrom].name,face:fMsg!=null?FMSG[fMsg][0]:'🎨',text:fMsg!=null?FMSG[fMsg][1]:''};
-  parts.unshift(p);if(!saveParts()){parts.shift();return;}
-  // envelope flies to the friend's star card
-  const src=$('fSend').getBoundingClientRect(),card=document.querySelectorAll('.star-card')[fTo];
-  const f=el('div','fly','💌');f.style.left=(src.left+src.width/2-27)+'px';f.style.top=(src.top-20)+'px';document.body.appendChild(f);
-  tone(500,.15,'triangle',.06);tone(900,.25,'triangle',.06,.2);
-  requestAnimationFrame(()=>{f.style.transform='translateY(-160px) scale(1.4) rotate(-15deg)';f.style.opacity='.0';});
-  setTimeout(()=>f.remove(),1300);
-  confetti(160);chime();toast('💌 وصلت رسالتك إلى '+data.kids[fTo].name.split(' ')[0]);
-  renderStars();renderGallery();pad3.clear();fImg=null;
-  await showCert({...p,img:p.img,type:'friend'});fGo(1);
-};
+const PADLET_URL='https://padlet.com/meissa_ftnv/kg1c-s025kywzovwchdecdmb2';
+let padText='';
+async function padCopy(t){try{await navigator.clipboard.writeText(t);return true;}catch(e){try{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok;}catch(e2){return false;}}}
+async function openPadlet(text,img,fileName){padText=text;const prev=$('padPrev');prev.innerHTML='';
+  if(img){const im=new Image();im.src=img;prev.appendChild(im);}if(text)prev.appendChild(document.createTextNode(text));
+  const copied=text?await padCopy(text):false;const st=$('padSteps');st.innerHTML='';const li=(ar,en)=>{const l=el('li',null,ar);l.appendChild(el('small',null,en));st.appendChild(l);};
+  if(img){saveUrl(img,fileName||'drawing-KG1C.png');li('احفظ الرسمة: إن لم تُحفظ تلقائيًا، اضغط مطوّلًا على الرسمة واختر «حفظ الصورة».','Save the drawing: if it did not save, press and hold it and choose "Save Image".');}
+  if(text)li(copied?'تم نسخ رسالتك ✓':'انسخ الرسالة بالضغط على زر «انسخ الرسالة».',copied?'Your message is copied ✓':'Copy the message with the "Copy" button.');
+  li('اضغط «افتح Padlet»، ثم اضغط زر ➕ في Padlet.','Tap "Open Padlet", then tap the ➕ button.');
+  li(img?'أضف الرسمة من الصور، والصق الرسالة، ثم اضغط «نشر».':'اضغط مطوّلًا في مربع الكتابة واختر «لصق»، ثم اضغط «نشر».',img?'Add the drawing from Photos, paste the message, then tap "Publish".':'Press and hold in the text box, choose "Paste", then tap "Publish".');
+  $('padGo').href=PADLET_URL;$('padCopy').style.display=text?'':'none';$('padModal').classList.add('show');confetti(90);chime();}
+$('wallGo').href=PADLET_URL;$('wallGo').addEventListener('click',e=>{if(PADLET_URL.indexOf('http')!==0){e.preventDefault();toast('رابط Padlet غير جاهز بعد');}});
+$('padClose').onclick=()=>$('padModal').classList.remove('show');
+$('padModal').addEventListener('click',e=>{if(e.target.id==='padModal')$('padModal').classList.remove('show');});
+$('padCopy').onclick=async()=>{if(await padCopy(padText))toast('📋 تم النسخ · Copied');};
+$('padGo').addEventListener('click',e=>{if(!PADLET_URL||PADLET_URL.indexOf('http')!==0){e.preventDefault();toast('رابط Padlet غير جاهز بعد');}});
+$('fSend').onclick=()=>{const to=data.kids[fTo],fr=data.kids[fFrom];
+  const head=`💌 إلى ${to.name} من ${fr.name}\nTo ${to.nameEn||''} from ${fr.nameEn||''}`;
+  if(fImg){openPadlet(head+'\n🎨 رسمة لك · A drawing for you',fImg,`drawing-for-${(to.nameEn||'friend').split(' ')[0]}.png`);}
+  else{openPadlet(head+'\n'+FMSG[fMsg][0]+' '+FMSG[fMsg][1]);}
+  pad3.clear();fImg=null;fGo(1);};
 function renderBoard(){const B=$('fBoard'),svg=$('fLines');B.querySelectorAll('.fnode,.fcenter').forEach(x=>x.remove());svg.innerHTML='';
   const fr=parts.filter(p=>p.type==='friend'&&data.kids[p.from]&&data.kids[p.to]);const n=data.kids.length;if(!n)return;
   const pos=data.kids.map((k,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[50+42*Math.cos(a),50+42*Math.sin(a)];});
