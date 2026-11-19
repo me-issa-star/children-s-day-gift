@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preload" href="song.mp3" as="audio">
 <title>نجوم KG1 C | اليوم العالمي للطفل</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -642,7 +643,7 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
   <h2 class="g-title display rainbow">🐮 مين يقول؟</h2>
   <div class="g-sub">اسمع الصوت واضغط على الحيوان الصحيح</div>
   <div class="panel en-panel">
-    <button class="btn primary en-say" id="anSay" dir="ltr">🔊 Listen</button>
+    <button class="btn primary en-say" id="anSay">🔊 اسمع الصوت</button>
     <div class="en-word" id="anWord" dir="ltr" aria-live="polite"></div>
     <div class="en-grid" id="anGrid"></div>
     <div class="stat" id="anStat" dir="ltr"></div>
@@ -798,7 +799,7 @@ const bad=()=>tone(220,.25,'sawtooth',.04);
 $('soundBtn').onclick=()=>{soundOn=!soundOn;$('soundBtn').textContent=soundOn?'🔊':'🔇';ctx();if(soundOn)bgUnlock();bgApply();if(!soundOn)stopSpeak();};
 
 /* background song: «أوبريت يوم الطفل العالمي» on loop */
-const SONGS=[];
+const SONGS=[['song.mp3','أوبريت يوم الطفل العالمي']];
 const BGM={els:[],gains:[],cur:0,started:false,fading:false,target:.55,duck:false};
 function bgInit(){if(BGM.els.length)return;const a=ctx();
   SONGS.forEach(([src],i)=>{const e=new Audio(src);e.preload='auto';if(SONGS.length===1)e.loop=true;let g=null;
@@ -817,6 +818,11 @@ function bgNext(t){const old=BGM.cur,nx=(old+1)%SONGS.length,e=BGM.els[nx];BGM.f
   bgGain(nx,bgLevel(),t);bgGain(old,0,t);BGM.cur=nx;if(soundOn)toast('🎵 '+SONGS[nx][1]);
   setTimeout(()=>{BGM.els[old].pause();BGM.fading=false;},t*1000+200);}
 function bgApply(t=.8){if(!BGM.started)return;const e=BGM.els[BGM.cur];if(soundOn&&e.paused)e.play().catch(()=>{});bgGain(BGM.cur,bgLevel(),t);}
+function bgStartNow(){if(!SONGS.length||!soundOn)return;const a=ctx();bgUnlock();setTimeout(()=>{if(BGM.started)bgGain(BGM.cur,bgLevel(),1.2);},150);return a;}
+(function(){const tryNow=()=>{try{bgStartNow();}catch(e){}};
+  if(document.readyState==='complete')setTimeout(tryNow,300);else window.addEventListener('load',()=>setTimeout(tryNow,300));
+  const onTouch=()=>{tryNow();setTimeout(()=>{if(BGM.started&&actx&&actx.state==='running'){['pointerdown','touchend','keydown'].forEach(t=>document.removeEventListener(t,onTouch,true));}},400);};
+  ['pointerdown','touchend','keydown'].forEach(t=>document.addEventListener(t,onTouch,true));})();
 function bgDuck(on){BGM.duck=on;bgApply(.4);}
 document.addEventListener('visibilitychange',()=>{if(!BGM.started)return;const e=BGM.els[BGM.cur];if(document.hidden)e.pause();else if(soundOn)e.play().catch(()=>{});});
 
@@ -1267,15 +1273,20 @@ const VOICE='airy',RATE=.88;
 function bestVoice(re){try{const vs=(window.speechSynthesis&&speechSynthesis.getVoices())||[];const l=vs.filter(v=>re.test(v.lang));
   const rank=v=>(/natural|online|neural|premium|enhanced/i.test(v.name)?0:/google|microsoft|maged|majed|laila|hoda|naayf|zariyah|hamed|samantha/i.test(v.name)?1:2);
   return l.sort((x,y)=>rank(x)-rank(y))[0]||null;}catch(e){return null;}}
-function deviceSay(ar,en){try{const ss=window.speechSynthesis;if(!ss)return;ss.cancel();
-  const va=bestVoice(/^ar/i),ve=bestVoice(/^en/i);
-  const u1=new SpeechSynthesisUtterance(ar);u1.lang='ar-SA';if(va)u1.voice=va;u1.rate=RATE;
-  const u2=new SpeechSynthesisUtterance(en);u2.lang='en-US';if(ve)u2.voice=ve;u2.rate=RATE;
-  u2.onend=()=>bgDuck(false);bgDuck(true);ss.speak(u1);ss.speak(u2);}catch(e){}}
-function sayCheer(c){if(!soundOn||ttsBlocked)return;
+const SPEECH=false;
+function deviceSay(ar,en){if(!SPEECH)return;bgDuck(true);devSpeak([[ar,'ar-SA',RATE],[en,'en-US',RATE]],()=>bgDuck(false));}
+function sayCheer(c){if(!SPEECH)return;if(!soundOn||ttsBlocked)return;
   if(ttsNS){bgDuck(true);ttsNS.speak([{text:c[1],language:'ar'},{text:c[2],language:'en'}],{voice:VOICE,rate:RATE}).catch(e=>{if(e&&e.code==='not_granted')ttsBlocked=true;}).finally(()=>bgDuck(false));}
   else deviceSay(c[1],c[2]);}
 try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();}catch(e){}
+const _uq=[];
+function devSpeak(items,onEnd){try{const ss=window.speechSynthesis;if(!ss||!window.SpeechSynthesisUtterance)return;
+  const go=()=>{_uq.length=0;items.forEach(([t,l,r],k)=>{const u=new SpeechSynthesisUtterance(t);u.lang=l;const v=bestVoice(/^ar/i.test(l)?/^ar/i:/^en/i);if(v)u.voice=v;u.rate=r||RATE;u.volume=1;
+    if(k===items.length-1&&onEnd){u.onend=onEnd;u.onerror=onEnd;}_uq.push(u);ss.speak(u);});try{ss.resume();}catch(e){}};
+  if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,90);}else go();}catch(e){}}
+(function(){const un=()=>{try{ctx();if(window.speechSynthesis&&!speechSynthesis.speaking){const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}}catch(e){}
+  document.removeEventListener('pointerdown',un,true);document.removeEventListener('touchend',un,true);};
+  document.addEventListener('pointerdown',un,true);document.addEventListener('touchend',un,true);})();
 function stopSpeak(){try{ttsNS&&ttsNS.stop().catch(()=>{});}catch(e){}try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}bgDuck(false);}
 
 /* ---------- ENGLISH: LISTEN & TAP ---------- */
@@ -1296,9 +1307,9 @@ moon:'<path d="M62 12a38 38 0 1 0 26 58A32 32 0 1 1 62 12z" fill="#ffd60a"/><cir
 };
 const EN_WORDS=Object.keys(EN_PICS),EN_ROUNDS=10;
 let enTarget='',enScore=0,enRound=0,enLock=false;
-function sayEn(w){if(!soundOn)return;
+function sayEn(w){if(!SPEECH)return;if(!soundOn)return;
   if(ttsNS&&!ttsBlocked){bgDuck(true);ttsNS.speak([{text:w,language:'en'}],{voice:VOICE,rate:.8}).catch(e=>{if(e&&e.code==='not_granted')ttsBlocked=true;}).finally(()=>bgDuck(false));return;}
-  try{const ss=window.speechSynthesis;if(!ss)return;ss.cancel();const u=new SpeechSynthesisUtterance(w);u.lang='en-US';const v=bestVoice(/^en/i);if(v)u.voice=v;u.rate=.8;ss.speak(u);}catch(e){}}
+  devSpeak([[w,'en-US',.8]]);}
 function enNext(){enLock=false;$('enWord').textContent='';
   if(enRound>=EN_ROUNDS){$('enGrid').innerHTML='';$('enWord').textContent='Well done! 🎉';$('enStat').textContent=`⭐ ${enScore} / ${EN_ROUNDS}`;$('enAgain').style.display='';confetti(160);sayEn('Well done!');return;}
   const pool=EN_WORDS.slice().sort(()=>Math.random()-.5);enTarget=pool[0];const opts=pool.slice(0,4).sort(()=>Math.random()-.5);
@@ -1318,8 +1329,8 @@ function loadImg(src){return new Promise(r=>{const im=new Image();im.onload=()=>
 function svgUrl(inner,vb){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb||'0 0 100 100'}">${inner}</svg>`);}
 function saveUrl(url,name){try{const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();}catch(e){}}
 function drawCover(c,im,x,y,w,h){const r=Math.max(w/im.width,h/im.height),sw=w/r,sh=h/r;c.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,x,y,w,h);}
-function sayAr(t){if(!soundOn)return;if(ttsNS&&!ttsBlocked){bgDuck(true);ttsNS.speak([{text:t,language:'ar'}],{voice:VOICE,rate:RATE}).catch(e=>{if(e&&e.code==='not_granted')ttsBlocked=true;}).finally(()=>bgDuck(false));return;}
-  try{const ss=window.speechSynthesis;if(!ss)return;ss.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';const v=bestVoice(/^ar/i);if(v)u.voice=v;u.rate=RATE;ss.speak(u);}catch(e){}}
+function sayAr(t){if(!SPEECH)return;if(!soundOn)return;if(ttsNS&&!ttsBlocked){bgDuck(true);ttsNS.speak([{text:t,language:'ar'}],{voice:VOICE,rate:RATE}).catch(e=>{if(e&&e.code==='not_granted')ttsBlocked=true;}).finally(()=>bgDuck(false));return;}
+  devSpeak([[t,'ar-SA',RATE]]);}
 
 /* ---------- BALLOON POP ---------- */
 const BL_COLS=[['Red','#ff4d4d'],['Blue','#3a8dde'],['Yellow','#ffc93c'],['Green','#4cb944'],['Orange','#ff9f43'],['Purple','#a66cff'],['Pink','#ff6fb5']];
@@ -1375,16 +1386,17 @@ $('whSpin').onclick=()=>{if(whBusy)return;whBusy=true;$('whRes').innerHTML='';co
 
 /* ---------- WHO SAYS THAT? ---------- */
 const AN={
-cat:['Meow, meow!',EN_PICS.cat],
-dog:['Woof, woof!','<ellipse cx="50" cy="56" rx="30" ry="28" fill="#c68642"/><ellipse cx="24" cy="46" rx="11" ry="22" fill="#8b5a2b"/><ellipse cx="76" cy="46" rx="11" ry="22" fill="#8b5a2b"/><circle cx="40" cy="50" r="5" fill="#333"/><circle cx="60" cy="50" r="5" fill="#333"/><ellipse cx="50" cy="64" rx="12" ry="9" fill="#f3d2a2"/><ellipse cx="50" cy="60" rx="6" ry="4" fill="#333"/><path d="M50 64v6M44 72q6 4 12 0" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round"/>'],
-cow:['Moo, moo!','<path d="M20 30q-10-6-6-14 8 2 14 10zM80 30q10-6 6-14-8 2-14 10z" fill="#e9e3d5"/><ellipse cx="50" cy="48" rx="30" ry="28" fill="#fff" stroke="#333" stroke-width="2"/><path d="M30 30q8 10 0 20-8-4-6-14zM66 56q10-4 12 8-8 6-14 0z" fill="#333"/><ellipse cx="50" cy="70" rx="22" ry="15" fill="#f6b8c4"/><circle cx="42" cy="70" r="3.5" fill="#a0525e"/><circle cx="58" cy="70" r="3.5" fill="#a0525e"/><circle cx="38" cy="44" r="5" fill="#333"/><circle cx="62" cy="44" r="5" fill="#333"/>'],
-duck:['Quack, quack!','<ellipse cx="46" cy="62" rx="32" ry="22" fill="#ffd60a"/><circle cx="64" cy="36" r="18" fill="#ffd60a"/><path d="M80 38l16 2-16 8z" fill="#ff9f43"/><circle cx="68" cy="32" r="3.5" fill="#333"/><path d="M28 58q16 14 32 0" fill="#f2c200"/><path d="M14 56l-10-8 2 16z" fill="#ffd60a"/>'],
-sheep:['Baa, baa!','<g fill="#f4f1ea" stroke="#d9d3c6" stroke-width="2"><circle cx="30" cy="50" r="16"/><circle cx="50" cy="40" r="18"/><circle cx="70" cy="50" r="16"/><circle cx="40" cy="64" r="16"/><circle cx="62" cy="64" r="16"/></g><ellipse cx="50" cy="56" rx="14" ry="17" fill="#4a3b33"/><circle cx="44" cy="52" r="3" fill="#fff"/><circle cx="56" cy="52" r="3" fill="#fff"/><path d="M45 64q5 4 10 0" stroke="#fff" stroke-width="2" fill="none"/><ellipse cx="34" cy="50" rx="7" ry="4" fill="#4a3b33"/><ellipse cx="66" cy="50" rx="7" ry="4" fill="#4a3b33"/>'],
-lion:['Roar!','<g fill="#c8641f"><circle cx="50" cy="20" r="14"/><circle cx="74" cy="28" r="14"/><circle cx="82" cy="52" r="14"/><circle cx="74" cy="76" r="14"/><circle cx="50" cy="84" r="14"/><circle cx="26" cy="76" r="14"/><circle cx="18" cy="52" r="14"/><circle cx="26" cy="28" r="14"/></g><circle cx="50" cy="52" r="28" fill="#ffc15e"/><circle cx="40" cy="46" r="4.5" fill="#333"/><circle cx="60" cy="46" r="4.5" fill="#333"/><path d="M45 58h10l-5 6z" fill="#7a3e12"/><path d="M50 64q-6 6-11 2M50 64q6 6 11 2" stroke="#7a3e12" stroke-width="2.5" fill="none" stroke-linecap="round"/>'],
-frog:['Ribbit, ribbit!','<ellipse cx="50" cy="62" rx="36" ry="26" fill="#4cb944"/><circle cx="32" cy="36" r="13" fill="#4cb944"/><circle cx="68" cy="36" r="13" fill="#4cb944"/><circle cx="32" cy="36" r="7" fill="#fff"/><circle cx="68" cy="36" r="7" fill="#fff"/><circle cx="32" cy="37" r="3.5" fill="#333"/><circle cx="68" cy="37" r="3.5" fill="#333"/><path d="M30 64q20 16 40 0" stroke="#1f6b3a" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="26" cy="58" r="5" fill="#ff9aa2" opacity=".6"/><circle cx="74" cy="58" r="5" fill="#ff9aa2" opacity=".6"/>'],
-bird:['Tweet, tweet!',EN_PICS.bird]};
+cat:['Cat',EN_PICS.cat],
+dog:['Dog','<ellipse cx="50" cy="56" rx="30" ry="28" fill="#c68642"/><ellipse cx="24" cy="46" rx="11" ry="22" fill="#8b5a2b"/><ellipse cx="76" cy="46" rx="11" ry="22" fill="#8b5a2b"/><circle cx="40" cy="50" r="5" fill="#333"/><circle cx="60" cy="50" r="5" fill="#333"/><ellipse cx="50" cy="64" rx="12" ry="9" fill="#f3d2a2"/><ellipse cx="50" cy="60" rx="6" ry="4" fill="#333"/><path d="M50 64v6M44 72q6 4 12 0" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round"/>'],
+cow:['Cow','<path d="M20 30q-10-6-6-14 8 2 14 10zM80 30q10-6 6-14-8 2-14 10z" fill="#e9e3d5"/><ellipse cx="50" cy="48" rx="30" ry="28" fill="#fff" stroke="#333" stroke-width="2"/><path d="M30 30q8 10 0 20-8-4-6-14zM66 56q10-4 12 8-8 6-14 0z" fill="#333"/><ellipse cx="50" cy="70" rx="22" ry="15" fill="#f6b8c4"/><circle cx="42" cy="70" r="3.5" fill="#a0525e"/><circle cx="58" cy="70" r="3.5" fill="#a0525e"/><circle cx="38" cy="44" r="5" fill="#333"/><circle cx="62" cy="44" r="5" fill="#333"/>'],
+duck:['Duck','<ellipse cx="46" cy="62" rx="32" ry="22" fill="#ffd60a"/><circle cx="64" cy="36" r="18" fill="#ffd60a"/><path d="M80 38l16 2-16 8z" fill="#ff9f43"/><circle cx="68" cy="32" r="3.5" fill="#333"/><path d="M28 58q16 14 32 0" fill="#f2c200"/><path d="M14 56l-10-8 2 16z" fill="#ffd60a"/>'],
+sheep:['Sheep','<g fill="#f4f1ea" stroke="#d9d3c6" stroke-width="2"><circle cx="30" cy="50" r="16"/><circle cx="50" cy="40" r="18"/><circle cx="70" cy="50" r="16"/><circle cx="40" cy="64" r="16"/><circle cx="62" cy="64" r="16"/></g><ellipse cx="50" cy="56" rx="14" ry="17" fill="#4a3b33"/><circle cx="44" cy="52" r="3" fill="#fff"/><circle cx="56" cy="52" r="3" fill="#fff"/><path d="M45 64q5 4 10 0" stroke="#fff" stroke-width="2" fill="none"/><ellipse cx="34" cy="50" rx="7" ry="4" fill="#4a3b33"/><ellipse cx="66" cy="50" rx="7" ry="4" fill="#4a3b33"/>'],
+lion:['Lion','<g fill="#c8641f"><circle cx="50" cy="20" r="14"/><circle cx="74" cy="28" r="14"/><circle cx="82" cy="52" r="14"/><circle cx="74" cy="76" r="14"/><circle cx="50" cy="84" r="14"/><circle cx="26" cy="76" r="14"/><circle cx="18" cy="52" r="14"/><circle cx="26" cy="28" r="14"/></g><circle cx="50" cy="52" r="28" fill="#ffc15e"/><circle cx="40" cy="46" r="4.5" fill="#333"/><circle cx="60" cy="46" r="4.5" fill="#333"/><path d="M45 58h10l-5 6z" fill="#7a3e12"/><path d="M50 64q-6 6-11 2M50 64q6 6 11 2" stroke="#7a3e12" stroke-width="2.5" fill="none" stroke-linecap="round"/>'],
+frog:['Frog','<ellipse cx="50" cy="62" rx="36" ry="26" fill="#4cb944"/><circle cx="32" cy="36" r="13" fill="#4cb944"/><circle cx="68" cy="36" r="13" fill="#4cb944"/><circle cx="32" cy="36" r="7" fill="#fff"/><circle cx="68" cy="36" r="7" fill="#fff"/><circle cx="32" cy="37" r="3.5" fill="#333"/><circle cx="68" cy="37" r="3.5" fill="#333"/><path d="M30 64q20 16 40 0" stroke="#1f6b3a" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="26" cy="58" r="5" fill="#ff9aa2" opacity=".6"/><circle cx="74" cy="58" r="5" fill="#ff9aa2" opacity=".6"/>'],
+rooster:['Rooster','<path d="M40 22q4-12 10-4 4-10 10 0 6-6 8 6z" fill="#e63946"/><ellipse cx="48" cy="62" rx="26" ry="24" fill="#fff" stroke="#ddd" stroke-width="2"/><circle cx="54" cy="36" r="14" fill="#fff" stroke="#ddd" stroke-width="2"/><path d="M66 36l12 3-12 5z" fill="#ffb703"/><path d="M60 46q4 10-2 12-4-6 2-12z" fill="#e63946"/><circle cx="57" cy="33" r="3" fill="#333"/><path d="M24 54q-16-14-6-30 6 12 14 18zM22 62q-16-2-18 12 12-2 20-6z" fill="#3fa63a"/><path d="M40 86v8M54 86v8" stroke="#ffb703" stroke-width="4" stroke-linecap="round"/>']};
+const AN_AUD={};function anPlay(k){if(!soundOn)return;try{ctx();let a=AN_AUD[k];if(!a){a=new Audio('snd-'+k+'_1.mp3');a.preload='auto';a.onerror=()=>{if(!a._alt){a._alt=1;a.src='snd-'+k+'.mp3';a.play().catch(()=>{});}};AN_AUD[k]=a;}a.pause();try{a.currentTime=0;}catch(e){}bgDuck(true);a.onended=()=>bgDuck(false);a.play().catch(()=>bgDuck(false));}catch(e){}}
 const AN_KEYS=Object.keys(AN),AN_ROUNDS=8;let anT='',anScore=0,anRound=0,anLock=false;
-function anSound(){if(anT)sayEn(AN[anT][0]);}
+function anSound(){if(anT)anPlay(anT);}
 function anNext(){anLock=false;$('anWord').textContent='';
   if(anRound>=AN_ROUNDS){$('anGrid').innerHTML='';$('anWord').textContent='Well done! 🎉';$('anStat').textContent=`⭐ ${anScore} / ${AN_ROUNDS}`;$('anAgain').style.display='';confetti(160);sayEn('Well done!');return;}
   const pool=AN_KEYS.slice().sort(()=>Math.random()-.5);anT=pool[0];const opts=pool.slice(0,4).sort(()=>Math.random()-.5);
@@ -1393,7 +1405,7 @@ function anNext(){anLock=false;$('anWord').textContent='';
 function openAnimals(){anScore=0;anRound=0;$('anAgain').style.display='none';anNext();}
 $('anSay').onclick=anSound;$('anAgain').onclick=openAnimals;
 $('anGrid').onclick=e=>{const c=e.target.closest('.en-card');if(!c||anLock)return;
-  if(c.dataset.k===anT){anLock=true;c.classList.add('ok');anScore++;anRound++;const nm=anT.charAt(0).toUpperCase()+anT.slice(1);$('anWord').textContent=nm;tone(880,.15,'triangle',.07);tone(1175,.18,'triangle',.07,.12);confetti(50);sayEn(`Yes! The ${anT} says ${AN[anT][0].split(',')[0].replace('!','')}!`);setTimeout(anNext,2300);}
+  if(c.dataset.k===anT){anLock=true;c.classList.add('ok');anScore++;anRound++;$('anWord').textContent=AN[anT][0];tone(880,.15,'triangle',.07);tone(1175,.18,'triangle',.07,.12);confetti(50);anPlay(anT);setTimeout(anNext,2300);}
   else{c.classList.remove('no');void c.offsetWidth;c.classList.add('no');tone(220,.15,'sine',.05);sayEn('Try again');}};
 
 /* ---------- STICKER BOOTH ---------- */
